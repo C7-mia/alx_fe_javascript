@@ -196,7 +196,6 @@ async function syncWithServer() {
         quotes = [...newQuotes, ...quotes];
         saveQuotes();
         populateCategories();
-        showNotification("🔄 Synced with server: new quotes added.");
     }
 }
 
@@ -218,24 +217,21 @@ async function sendNewQuotesToServer() {
                 })
             });
 
-            if (response.ok) {
-                console.log("Quote sent:", quote);
-            } else {
+            if (!response.ok) {
                 console.warn("Failed to send quote:", quote);
             }
         } catch (error) {
             console.error("POST error:", error);
         }
     }
-
-    showNotification("📤 Quotes sent to server (simulated).");
 }
 
-// ✅ Unified sync function
+// ✅ Unified sync function with timestamp
 async function syncQuotes() {
     await syncWithServer();
     await sendNewQuotesToServer();
-    showNotification("🔃 Quotes synced with server.");
+    const timestamp = new Date().toLocaleTimeString();
+    showNotification(`✅ Quotes synced with server at ${timestamp}`);
 }
 
 // App setup
@@ -257,7 +253,7 @@ function setup() {
 
     restoreLastQuote();
     syncQuotes(); // Initial full sync
-    setInterval(syncQuotes, syncInterval); // Repeat sync
+    setInterval(syncQuotes, syncInterval); // Repeat sync every minute
 }
 
 window.addEventListener("DOMContentLoaded", setup);
