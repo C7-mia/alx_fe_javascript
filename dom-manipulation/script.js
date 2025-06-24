@@ -5,14 +5,14 @@ let quotes = JSON.parse(localStorage.getItem("quotes")) || [
 ];
 
 const serverUrl = "https://jsonplaceholder.typicode.com/posts";
-const syncInterval = 30000;
+const syncInterval = 60000;
 
 // Save to localStorage
 function saveQuotes() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
 }
 
-// Notification display
+// Display notification
 function showNotification(message) {
     const notify = document.getElementById("notification");
     notify.innerText = message;
@@ -33,7 +33,7 @@ function showRandomQuote(filteredQuotes = quotes) {
     sessionStorage.setItem("lastQuoteIndex", randomIndex);
 }
 
-// Add quote
+// Add new quote
 function addQuote() {
     const textInput = document.getElementById("newQuoteText");
     const categoryInput = document.getElementById("newQuoteCategory");
@@ -46,7 +46,7 @@ function addQuote() {
         return;
     }
 
-    const newId = Date.now(); // unique local ID
+    const newId = Date.now();
     quotes.push({ id: newId, text: newText, category: newCategory });
     saveQuotes();
     populateCategories();
@@ -55,7 +55,7 @@ function addQuote() {
     categoryInput.value = "";
 }
 
-// Create form
+// Create quote form dynamically
 function createAddQuoteForm() {
     const formContainer = document.getElementById("formContainer");
 
@@ -79,7 +79,7 @@ function createAddQuoteForm() {
     formContainer.appendChild(addButton);
 }
 
-// Export quotes
+// Export quotes as JSON
 function exportToJsonFile() {
     const dataStr = JSON.stringify(quotes, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
@@ -93,7 +93,7 @@ function exportToJsonFile() {
     URL.revokeObjectURL(url);
 }
 
-// Import quotes
+// Import quotes from file
 function importFromJsonFile(event) {
     const fileReader = new FileReader();
     fileReader.onload = function(e) {
@@ -140,7 +140,7 @@ function populateCategories() {
     filterQuotes();
 }
 
-// Filter quotes by category
+// Filter quotes by selected category
 function filterQuotes() {
     const selectedCategory = document.getElementById("categoryFilter").value;
     localStorage.setItem("selectedCategory", selectedCategory);
@@ -152,7 +152,7 @@ function filterQuotes() {
     showRandomQuote(filtered);
 }
 
-// Restore last viewed quote
+// Restore last viewed quote on reload
 function restoreLastQuote() {
     const lastIndex = sessionStorage.getItem("lastQuoteIndex");
     const selectedCategory = localStorage.getItem("selectedCategory");
@@ -167,7 +167,7 @@ function restoreLastQuote() {
     }
 }
 
-// ✅ Fetch from server
+// ✅ Fetch quotes from server
 async function fetchQuotesFromServer() {
     try {
         const response = await fetch(serverUrl);
@@ -184,7 +184,7 @@ async function fetchQuotesFromServer() {
     }
 }
 
-// ✅ Sync with server
+// ✅ Pull quotes from server
 async function syncWithServer() {
     const serverQuotes = await fetchQuotesFromServer();
 
@@ -196,13 +196,13 @@ async function syncWithServer() {
         quotes = [...newQuotes, ...quotes];
         saveQuotes();
         populateCategories();
-        showNotification("🔄 Synced with server: New quotes added.");
+        showNotification("🔄 Synced with server: new quotes added.");
     }
 }
 
-// ✅ POST to server
+// ✅ Push new local quotes to server
 async function sendNewQuotesToServer() {
-    const unsyncedQuotes = quotes.filter(q => q.id < 1000); // Assuming only local quotes
+    const unsyncedQuotes = quotes.filter(q => q.id < 1000);
 
     for (const quote of unsyncedQuotes) {
         try {
@@ -231,7 +231,14 @@ async function sendNewQuotesToServer() {
     showNotification("📤 Quotes sent to server (simulated).");
 }
 
-// Setup app
+// ✅ Unified sync function
+async function syncQuotes() {
+    await syncWithServer();
+    await sendNewQuotesToServer();
+    showNotification("🔃 Quotes synced with server.");
+}
+
+// App setup
 function setup() {
     createAddQuoteForm();
     populateCategories();
@@ -249,11 +256,8 @@ function setup() {
     document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
 
     restoreLastQuote();
-    syncWithServer();
-    sendNewQuotesToServer();
-
-    setInterval(syncWithServer, syncInterval);
-    setInterval(sendNewQuotesToServer, 60000); // Post every 60s
+    syncQuotes(); // Initial full sync
+    setInterval(syncQuotes, syncInterval); // Repeat sync
 }
 
 window.addEventListener("DOMContentLoaded", setup);
