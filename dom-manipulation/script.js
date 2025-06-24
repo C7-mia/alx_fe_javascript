@@ -1,11 +1,21 @@
 let quotes = JSON.parse(localStorage.getItem("quotes")) || [
-    { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
-    { text: "Creativity is intelligence having fun.", category: "Creativity" },
-    { text: "Life is what happens when you're busy making other plans.", category: "Life" },
+    { id: 1, text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
+    { id: 2, text: "Creativity is intelligence having fun.", category: "Creativity" },
+    { id: 3, text: "Life is what happens when you're busy making other plans.", category: "Life" },
 ];
+
+const serverUrl = "https://jsonplaceholder.typicode.com/posts"; // Simulated endpoint
+const syncInterval = 30000; // 30 seconds
 
 function saveQuotes() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
+}
+
+function showNotification(message) {
+    const notify = document.getElementById("notification");
+    notify.innerText = message;
+    notify.style.display = "block";
+    setTimeout(() => notify.style.display = "none", 4000);
 }
 
 function showRandomQuote(filteredQuotes = quotes) {
@@ -32,10 +42,11 @@ function addQuote() {
         return;
     }
 
-    quotes.push({ text: newText, category: newCategory });
+    const newId = Date.now();
+    quotes.push({ id: newId, text: newText, category: newCategory });
     saveQuotes();
-    populateCategories(); // update dropdown
-    alert("Quote added successfully!");
+    populateCategories();
+    showNotification("Quote added locally (will sync).");
     textInput.value = "";
     categoryInput.value = "";
 }
@@ -87,7 +98,7 @@ function importFromJsonFile(event) {
                     throw new Error("Invalid quote format");
                 }
             }
-            quotes.push(...importedQuotes);
+            quotes.push(...importedQuotes.map(q => ({ ...q, id: Date.now() + Math.random() })));
             saveQuotes();
             populateCategories();
             alert("Quotes imported successfully!");
@@ -102,7 +113,6 @@ function populateCategories() {
     const categorySelect = document.getElementById("categoryFilter");
     const selected = categorySelect.value;
 
-    // Clear previous options
     categorySelect.innerHTML = '<option value="all">All Categories</option>';
 
     const uniqueCategories = [...new Set(quotes.map(q => q.category))];
@@ -113,7 +123,6 @@ function populateCategories() {
         categorySelect.appendChild(option);
     });
 
-    // Restore last filter
     const lastFilter = localStorage.getItem("selectedCategory");
     if (lastFilter) {
         categorySelect.value = lastFilter;
@@ -121,7 +130,7 @@ function populateCategories() {
         categorySelect.value = selected;
     }
 
-    filterQuotes(); // Refresh display
+    filterQuotes();
 }
 
 function filterQuotes() {
@@ -138,16 +147,41 @@ function filterQuotes() {
 
 function restoreLastQuote() {
     const lastIndex = sessionStorage.getItem("lastQuoteIndex");
-    const quoteDisplay = document.getElementById("quoteDisplay");
     const selectedCategory = localStorage.getItem("selectedCategory");
-
-    const currentQuotes = (selectedCategory && selectedCategory !== "all")
+    const currentQuotes = selectedCategory && selectedCategory !== "all"
         ? quotes.filter(q => q.category === selectedCategory)
         : quotes;
 
     if (lastIndex !== null && currentQuotes[lastIndex]) {
         const quote = currentQuotes[lastIndex];
-        quoteDisplay.innerHTML = `"<em>${quote.text}</em>" — <strong>[${quote.category}]</strong>`;
+        document.getElementById("quoteDisplay").innerHTML = `"<em>${quote.text}</em>" — <strong>[${quote.category}]</strong>`;
+    }
+}
+
+async function syncWithServer() {
+    try {
+        const response = await fetch(serverUrl);
+        const serverData = await response.json();
+
+        const simulatedQuotes = serverData.slice(0, 3).map((item, index) => ({
+            id: 1000 + index,
+            text: item.title,
+            category: "Server"
+        }));
+
+        const newQuotes = simulatedQuotes.filter(serverQ =>
+            !quotes.some(localQ => localQ.id === serverQ.id)
+        );
+
+        if (newQuotes.length > 0) {
+            quotes = [...newQuotes, ...quotes];
+            saveQuotes();
+            populateCategories();
+            showNotification("Synced with server. New quotes added.");
+        }
+    } catch (error) {
+        console.error("Server sync failed:", error);
+        showNotification("⚠️ Failed to sync with server.");
     }
 }
 
@@ -157,12 +191,8 @@ function setup() {
 
     document.getElementById("newQuote").addEventListener("click", () => {
         const category = document.getElementById("categoryFilter").value;
-        if (category === "all") {
-            showRandomQuote(quotes);
-        } else {
-            const filtered = quotes.filter(q => q.category === category);
-            showRandomQuote(filtered);
-        }
+        const filtered = category === "all" ? quotes : quotes.filter(q => q.category === category);
+        showRandomQuote(filtered);
     });
 
     document.getElementById("exportJson").addEventListener("click", exportToJsonFile);
@@ -170,6 +200,8 @@ function setup() {
     document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
 
     restoreLastQuote();
+    syncWithServer(); // Initial sync
+    setInterval(syncWithServer, syncInterval); // Re-sync every 30s
 }
 
 window.addEventListener("DOMContentLoaded", setup);
