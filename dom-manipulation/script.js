@@ -7,12 +7,12 @@ const quotes = [
 function showRandomQuote() {
     const quoteDisplay = document.getElementById("quoteDisplay");
     if (quotes.length === 0) {
-        quoteDisplay.innerText = "No quotes available. Please add one!";
+        quoteDisplay.innerHTML = "<em>No quotes available. Please add one!</em>";
         return;
     }
     const randomIndex = Math.floor(Math.random() * quotes.length);
     const quote = quotes[randomIndex];
-    quoteDisplay.innerText = `"${quote.text}" — [${quote.category}]`;
+    quoteDisplay.innerHTML = `"<em>${quote.text}</em>" — <strong>[${quote.category}]</strong>`;
 }
 
 function addQuote() {
