@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dynamic Quote Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
+      margin: 20px;
+      background-color: #f9f9f9;
     }
     #quoteDisplay {
-      margin: 20px 0;
-      padding: 15px;
-      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
       background: #fff;
+      padding: 15px;
+      border-left: 4px solid #007BFF;
     }
     input {
       margin: 5px;
-      padding: 8px;
+      padding: 5px;
     }
     button {
-      padding: 8px 12px;
+      padding: 6px 12px;
+      margin: 5px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
+
   <h1>Dynamic Quote Generator</h1>
 
-  <div id="quoteDisplay">Click "Show New Quote" to begin</div>
-  <button id="newQuote">Show New Quote</button>
+  <!-- Where the quote will appear -->
+  <div id="quoteDisplay"><em>Click "Show Random Quote" to begin.</em></div>
 
-  <h2>Add a New Quote</h2>
-  <div>
-    <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
-    <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-    <button onclick="addQuote()">Add Quote</button>
-  </div>
+  <!-- Show quote button -->
+  <button id="newQuote">Show Random Quote</button>
 
+  <!-- Form will be dynamically added here -->
+  <div id="formContainer"></div>
+
+  <!-- Export / Import buttons -->
+  <button id="exportJson">Export Quotes (JSON)</button>
+
+  <input type="file" id="importFile" accept=".json" />
+
+  <!-- Link to your JS file -->
   <script src="script.js"></script>
 </body>
 </html>
