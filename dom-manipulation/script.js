@@ -33,4 +33,32 @@ function addQuote() {
     categoryInput.value = "";
 }
 
+function createAddQuoteForm() {
+    const formContainer = document.getElementById("formContainer");
+
+    // Quote text input
+    const quoteInput = document.createElement("input");
+    quoteInput.type = "text";
+    quoteInput.id = "newQuoteText";
+    quoteInput.placeholder = "Enter quote text";
+
+    // Category input
+    const categoryInput = document.createElement("input");
+    categoryInput.type = "text";
+    categoryInput.id = "newQuoteCategory";
+    categoryInput.placeholder = "Enter category";
+
+    // Add button
+    const addButton = document.createElement("button");
+    addButton.id = "addQuote";
+    addButton.textContent = "Add Quote";
+    addButton.addEventListener("click", addQuote);
+
+    // Append all to container
+    formContainer.appendChild(quoteInput);
+    formContainer.appendChild(categoryInput);
+    formContainer.appendChild(addButton);
+}
+
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+createAddQuoteForm(); // Call the form builder on load
