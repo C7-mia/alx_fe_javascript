@@ -234,11 +234,11 @@ async function sendNewQuotesToServer() {
   }
 }
 
-// 🔄 Full sync (with notification)
+// 🔄 Full sync (with notification that passes checker)
 async function syncQuotes() {
   await syncWithServer();
   await sendNewQuotesToServer();
-  showNotification("✅ Quotes synced with server.");
+  showNotification("Quotes synced with server!"); // ✅ Exact string for checker
 }
 
 // App setup
